@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Control Dashboard - TIMS LB Nagar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* Color Variables */
+:root {
+  --bg-main: #FFFFFF;
+  --bg-secondary: #FAFAFA;
+  --bg-card: #F8ECEF;
+  --border-color: #E8D5DC;
+  --text-primary: #4A3A45;
+  --text-secondary: #7A6A75;
+  --text-light: #A08A95;
+  --accent-rose: #D9A5B8;
+  --accent-rose-dark: #C8859D;
+  --accent-pink: #E8B4C4;
+  --accent-light-pink: #F5E5E8;
+  --success-green: #6BA872;
+  --warning-orange: #D99A5F;
+  --info-blue: #7BA3C0;
+  --error-red: #D97676;
+}
+
+.db{
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.hdr{
+  background: linear-gradient(135deg, #FFFFFF 0%, #FBF5F7 100%);
+  border-bottom: 3px solid var(--accent-rose);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(216, 165, 184, 0.12);
+}
+
+.hdr-l h1{
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.hdr-l p{
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.hdr-r{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hbadge{
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--accent-pink);
+  font-weight: 500;
+}
+
+.hbadge-g{
+  background: #EEF5EE;
+  color: var(--success-green);
+  border-color: #BFDFC3;
+  font-weight: 600;
+}
+
+.nav{
+  background: var(--bg-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--border-color);
+  overflow-x: auto;
+  gap: 2px;
+  padding: 0 16px;
+}
+
+.nb{
+  padding: 11px 16px;
+  font-size: 12px;
+  color: var(--text-light);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nb.on{
+  color: var(--accent-rose-dark);
+  border-bottom-color: var(--accent-rose);
+  background: white;
+}
+
+.nb:hover{
+  color: var(--accent-rose);
+  background: var(--accent-light-pink);
+}
+
+.cnt{
+  padding: 18px 20px;
+}
+
+.page{
+  display: none;
+}
+
+.page.on{
+  display: block;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.krow{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.krow3{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.krow2{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.kc{
+  background: white;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(216, 165, 184, 0.08);
+  transition: all 0.2s;
+}
+
+.kc:hover {
+  box-shadow: 0 4px 12px rgba(216, 165, 184, 0.15);
+  border-color: var(--accent-rose);
+}
+
+.kc::before{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.kc.bl::before { background: var(--info-blue); }
+.kc.tl::before { background: var(--accent-rose); }
+.kc.am::before { background: var(--warning-orange); }
+.kc.gn::before { background: var(--success-green); }
+.kc.rd::before { background: var(--error-red); }
+.kc.vi::before { background: var(--accent-pink); }
+
+.klb{
+  font-size: 10px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.kv{
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ks{
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.g2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.g3{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.g13{
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.pnl{
+  background: white;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(216, 165, 184, 0.08);
+}
+
+.ptl{
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--accent-light-pink);
+  padding-bottom: 10px;
+}
+
+.ptl span{
+  color: var(--accent-rose);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cw{
+  position: relative;
+  width: 100%;
+}
+
+.tbl{
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tbl th{
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--accent-rose);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: var(--accent-light-pink);
+}
+
+.tbl td{
+  padding: 8px 10px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  word-break: break-word;
+}
+
+.tbl tr:last-child td{
+  border-bottom: none;
+}
+
+.tbl tr:hover {
+  background: var(--accent-light-pink);
+}
+
+.pill{
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pp{
+  background: #E8F5E8;
+  color: var(--success-green);
+  border: 1px solid #C2E0C4;
+}
+
+.pw{
+  background: #FFF3E0;
+  color: var(--warning-orange);
+  border: 1px solid #FFE0B2;
+}
+
+.pb{
+  background: #EBF4F9;
+  color: var(--info-blue);
+  border: 1px solid #BBDEF0;
+}
+
+.lgnd{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.lsq{
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.gauge-row{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gauge-label{
+  font-size: 11px;
+  color: var(--text-secondary);
+  width: 140px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.gauge-track{
+  flex: 1;
+  height: 14px;
+  background: var(--accent-light-pink);
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-color);
+}
+
+.gauge-fill{
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.5s;
+}
+
+.gauge-val{
+  font-size: 11px;
+  color: var(--text-primary);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.scard{
+  background: var(--accent-light-pink);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.scard-top{
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.scard-val{
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.scard-sub{
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.divider{
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 14px 0;
+}
+
+.range-ok{
+  background: #E8F5E8;
+  border: 1px solid #C2E0C4;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--success-green);
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.bar-inline{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.bi-label{
+  font-size: 11px;
+  color: var(--text-secondary);
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 500;
+}
+
+.bi-track{
+  flex: 1;
+  height: 11px;
+  background: var(--accent-light-pink);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.bi-fill{
+  height: 100%;
+  border-radius: 5px;
+}
+
+.bi-val{
+  font-size: 11px;
+  color: var(--text-primary);
+  width: 45px;
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.info-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  font-size: 11px;
+}
+
+.info-row .ik{
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.info-row .iv{
+  color: var(--text-primary);
+  text-align: right;
+  font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .krow { grid-template-columns: repeat(2, 1fr); }
+  .krow3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .krow, .krow2, .krow3 { grid-template-columns: 1fr; }
+  .hdr { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .hdr-r { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="db">
+<div class="hdr">
+  <div class="hdr-l">
+    <h1>TIMS LB NAGAR — Quality Control Dashboard</h1>
+    <p>Batching Plant &nbsp;|&nbsp; Source: Ghatkesar &nbsp;|&nbsp; Fine &amp; Coarse Aggregate &nbsp;|&nbsp; M35 Concrete</p>
+  </div>
+  <div class="hdr-r">
+    <div class="hbadge">Project: TIMS LB Nagar</div>
+    <div class="hbadge">Location: LB Nagar, Hyderabad</div>
+    <div class="hbadge-g">✓ All Tests PASS</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb on"  onclick="sp('overview',this)">1. Overview</button>
+  <button class="nb" onclick="sp('phys-fa',this)">2. Physical — FA</button>
+  <button class="nb" onclick="sp('phys-ca',this)">3. Physical — CA</button>
+  <button class="nb" onclick="sp('mech-cr',this)">4. Crushing Value</button>
+  <button class="nb" onclick="sp('mech-im',this)">5. Impact Value</button>
+  <button class="nb" onclick="sp('vol',this)">6. Volumetric Tests</button>
+  <button class="nb" onclick="sp('concrete',this)">7. Fresh Concrete</button>
+  <button class="nb" onclick="sp('compliance',this)">8. Compliance Report</button>
+</div>
+
+<div class="cnt">
+
+<!-- PAGE 1: OVERVIEW -->
+<div id="p-overview" class="page on">
+<div class="krow">
+  <div class="kc bl"><div class="klb">Total Tests</div><div class="kv">66</div><div class="ks">All Completed</div></div>
+  <div class="kc tl"><div class="klb">Pass Rate</div><div class="kv">100%</div><div class="ks">No Failures</div></div>
+  <div class="kc am"><div class="klb">Test Categories</div><div class="kv">4</div><div class="ks">Physical, Mechanical, Volumetric, Concrete</div></div>
+  <div class="kc gn"><div class="klb">Compliance</div><div class="kv">100%</div><div class="ks">All Standards Met</div></div>
+</div>
+
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Test Distribution <span>Category Breakdown</span></div>
+    <div class="cw" style="height:250px"><canvas id="c_pie"></canvas></div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Material Count <span>By Aggregate Type</span></div>
+    <div class="cw" style="height:250px"><canvas id="c_mat"></canvas></div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Overall Compliance Radar <span>All Parameters</span></div>
+  <div class="cw" style="height:300px"><canvas id="c_radar"></canvas></div>
+</div>
+</div>
+
+<!-- PAGE 2: PHYSICAL — FA -->
+<div id="p-phys-fa" class="page">
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Specific Gravity - Fine Aggregate <span>Test Results</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_sgFA"></canvas></div>
+    <div class="range-ok">✓ All within acceptable range (2.65 ± 0.25)</div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Water Absorption - Fine Aggregate <span>Test Results</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_waFA"></canvas></div>
+    <div class="range-ok">✓ All within acceptable range (≤ 3.0%)</div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Fine Aggregate Test Details <span>Complete Records</span></div>
+  <div class="cw">
+    <table class="tbl">
+      <thead><tr><th>Test ID</th><th>Date</th><th>Material</th><th>Source</th><th>SG</th><th>Water Abs %</th><th>Status</th></tr></thead>
+      <tbody id="tb_fa"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 3: PHYSICAL — CA -->
+<div id="p-phys-ca" class="page">
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Specific Gravity - Coarse Aggregate <span>Test Results</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_sgCA"></canvas></div>
+    <div class="range-ok">✓ All within acceptable range (2.60–2.65)</div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Water Absorption - Coarse Aggregate <span>Test Results</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_waCA"></canvas></div>
+    <div class="range-ok">✓ All within acceptable range (≤ 0.4%)</div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Coarse Aggregate Test Details <span>Complete Records</span></div>
+  <div class="cw">
+    <table class="tbl">
+      <thead><tr><th>Test ID</th><th>Date</th><th>Material</th><th>Source</th><th>SG</th><th>Water Abs %</th><th>Status</th></tr></thead>
+      <tbody id="tb_ca"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 4: CRUSHING VALUE -->
+<div id="p-mech-cr" class="page">
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Crushing Value Trend <span>12.5 mm Aggregate</span></div>
+    <div class="cw" style="height:240px"><canvas id="c_crush"></canvas></div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Crushing Value by Sample <span>Pass/Fail Status</span></div>
+    <div class="cw" style="height:240px"><canvas id="c_crush2"></canvas></div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Crushing Value Test Details <span>Complete Records</span></div>
+  <div class="cw">
+    <table class="tbl">
+      <thead><tr><th>Test ID</th><th>Date</th><th>Size</th><th>Result %</th><th>Status</th></tr></thead>
+      <tbody id="tb_crush"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 5: IMPACT VALUE -->
+<div id="p-mech-im" class="page">
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Impact Value Trend <span>12.5 mm Aggregate</span></div>
+    <div class="cw" style="height:240px"><canvas id="c_impact"></canvas></div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Mechanical Properties Comparison <span>Avg, Min, Max</span></div>
+    <div class="cw" style="height:240px"><canvas id="c_mechcmp"></canvas></div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Impact Value Test Details <span>Complete Records</span></div>
+  <div class="cw">
+    <table class="tbl">
+      <thead><tr><th>Test ID</th><th>Date</th><th>Size</th><th>Result %</th><th>Status</th></tr></thead>
+      <tbody id="tb_impact"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 6: VOLUMETRIC -->
+<div id="p-vol" class="page">
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Fineness & Elongation Index <span>Volumetric Tests</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_fe"></canvas></div>
+  </div>
+  <div class="pnl">
+    <div class="ptl">Fineness Modulus &amp; Bulk Density <span>Supplementary Data</span></div>
+    <div class="cw" style="height:220px"><canvas id="c_bd"></canvas></div>
+  </div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Volumetric Tests Summary <span>All Results</span></div>
+  <div class="cw">
+    <table class="tbl">
+      <thead><tr><th>Test ID</th><th>Date</th><th>Material</th><th>Test Type</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
+      <tbody id="tb_vol"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 7: CONCRETE -->
+<div id="p-concrete" class="page">
+<div class="pnl">
+  <div class="ptl">Fresh Concrete Slump Test <span>M35 Design</span></div>
+  <div class="cw" style="height:260px"><canvas id="c_slump"></canvas></div>
+</div>
+
+<div class="krow2">
+  <div class="pnl">
+    <div class="ptl">Slump Test Compliance <span>Standards Check</span></div>
+    <div class="gauge-row">
+      <div class="gauge-label">Min Allowed</div>
+      <div class="gauge-track"><div class="gauge-fill" style="background:var(--error-red);width:25%"></div></div>
+      <div class="gauge-val">125 mm</div>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge-label">Target Range</div>
+      <div class="gauge-track"><div class="gauge-fill" style="background:var(--warning-orange);width:70%"></div></div>
+      <div class="gauge-val">150 mm</div>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge-label">Actual Slump</div>
+      <div class="gauge-track"><div class="gauge-fill" style="background:var(--info-blue);width:85%"></div></div>
+      <div class="gauge-val">165 mm</div>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge-label">Max Allowed</div>
+      <div class="gauge-track"><div class="gauge-fill" style="background:var(--error-red);width:100%"></div></div>
+      <div class="gauge-val">175 mm</div>
+    </div>
+    <div class="range-ok">✓ Actual slump within specification range</div>
+  </div>
+  
+  <div class="pnl">
+    <div class="ptl">Concrete Quality Assessment <span>Fresh Properties</span></div>
+    <div class="scard">
+      <div class="scard-top">Slump Value</div>
+      <div class="scard-val">165 mm</div>
+      <div class="scard-sub">Within 150±25 mm specification</div>
+    </div>
+    <div class="scard">
+      <div class="scard-top">Workability</div>
+      <div class="scard-val">GOOD</div>
+      <div class="scard-sub">Suitable for placement and compaction</div>
+    </div>
+    <div class="scard">
+      <div class="scard-top">Mix Design</div>
+      <div class="scard-val">M35 Grade</div>
+      <div class="scard-sub">28-day target strength ≥ 35 MPa</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 8: COMPLIANCE -->
+<div id="p-compliance" class="page">
+<div class="krow">
+  <div class="kc gn"><div class="klb">Physical Tests</div><div class="kv">27</div><div class="ks">100% Pass</div></div>
+  <div class="kc gn"><div class="klb">Mechanical Tests</div><div class="kv">27</div><div class="ks">100% Pass</div></div>
+  <div class="kc gn"><div class="klb">Volumetric Tests</div><div class="kv">11</div><div class="ks">100% Pass</div></div>
+  <div class="kc gn"><div class="klb">Fresh Concrete</div><div class="kv">1</div><div class="ks">100% Pass</div></div>
+</div>
+
+<div class="pnl">
+  <div class="ptl">Quality Assurance Summary <span>Regulatory Compliance</span></div>
+  <div class="info-row">
+    <div class="ik">Total Tests Conducted:</div><div class="iv">66</div>
+    <div class="ik">Tests Passed:</div><div class="iv">66</div>
+    <div class="ik">Overall Pass Rate:</div><div class="iv">100%</div>
+    <div class="ik">Tests Failed:</div><div class="iv">0</div>
+    <div class="ik">Rework Required:</div><div class="iv">None</div>
+    <div class="ik">Certification Status:</div><div class="iv">Approved</div>
+  </div>
+  <div class="divider"></div>
+  <div style="padding: 14px 0; font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+    <strong style="color: var(--text-primary);">Standards Compliance:</strong><br>
+    • All Physical tests conform to IS 2386 (Indian Standard Methods of Test for Aggregates)<br>
+    • All Mechanical tests conform to IS 2386 & IS 2142<br>
+    • Volumetric testing per IS 1047 & IS 2386<br>
+    • Fresh Concrete testing per IS 1199<br>
+    • Material sourced from approved quarry with batch certification<br>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const BL = '#7BA3C0', TL = '#D9A5B8', AM = '#D99A5F', GN = '#6BA872', RD = '#D97676', VI = '#E8B4C4', TK = '#4A3A45', GR = '#E8D5DC';
+
+const base = {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false, labels:{font:{size:10}, color:TK}}, tooltip:{backgroundColor:'white', borderColor:'#D9A5B8', borderWidth:2, titleColor:TK, bodyColor:TK, padding:10, titleFont:{size:11, weight:'bold'}, bodyFont:{size:11}}}, scales:{x:{ticks:{color:TK, font:{size:10}}, grid:{color:GR, drawBorder:false}}, y:{ticks:{color:TK, font:{size:10}}, grid:{color:GR, drawBorder:false}, beginAtZero:true}}};
+
+function merge(obj1, obj2){return {...obj1, ...obj2};}
+
+const ptFA=[
+  {id:'PT-FA-001',date:'15-11-2023',sg:2.78,wa:1.85},{id:'PT-FA-002',date:'18-11-2023',sg:2.80,wa:1.92},{id:'PT-FA-003',date:'22-11-2023',sg:2.77,wa:1.88},{id:'PT-FA-004',date:'25-11-2023',sg:2.79,wa:1.90},{id:'PT-FA-005',date:'28-11-2023',sg:2.81,wa:1.87},{id:'PT-FA-006',date:'02-12-2023',sg:2.76,wa:1.93},{id:'PT-FA-007',date:'05-12-2023',sg:2.78,wa:1.89},{id:'PT-FA-008',date:'08-12-2023',sg:2.80,wa:1.91}
+];
+const ptCA=[
+  {id:'PT-CA-001',date:'15-11-2023',sg:2.60,wa:0.18},{id:'PT-CA-002',date:'18-11-2023',sg:2.62,wa:0.19},{id:'PT-CA-003',date:'22-11-2023',sg:2.61,wa:0.19},{id:'PT-CA-004',date:'25-11-2023',sg:2.63,wa:0.20},
+  {id:'PT-CA-005',date:'23-01-2024',sg:2.61,wa:0.20},{id:'PT-CA-006',date:'20-01-2024',sg:2.63,wa:0.20},{id:'PT-CA-007',date:'06-01-2024',sg:2.63,wa:0.21},{id:'PT-CA-008',date:'25-11-2023',sg:2.64,wa:0.20}
+];
+const crush=[
+  {id:'MT-CR-001',date:'19-11-2023',v:18.80},{id:'MT-CR-002',date:'18-11-2023',v:18.93},{id:'MT-CR-003',date:'22-11-2023',v:18.95},{id:'MT-CR-004',date:'20-02-2024',v:18.80},{id:'MT-CR-005',date:'24-11-2023',v:18.99},{id:'MT-CR-006',date:'22-03-2024',v:18.64},{id:'MT-CR-007',date:'24-02-2024',v:18.81},{id:'MT-CR-008',date:'06-03-2024',v:18.92},{id:'MT-CR-009',date:'25-02-2024',v:18.95},{id:'MT-CR-010',date:'13-10-2023',v:16.58},{id:'MT-CR-011',date:'26-03-2024',v:18.95},{id:'MT-CR-012',date:'28-03-2024',v:18.62}
+];
+const impact=[
+  {id:'MT-IM-001',date:'18-11-2023',v:15.34},{id:'MT-IM-002',date:'08-10-2023',v:15.95},{id:'MT-IM-003',date:'22-11-2023',v:15.22},{id:'MT-IM-004',date:'15-12-2023',v:12.63},{id:'MT-IM-005',date:'19-11-2023',v:15.45},{id:'MT-IM-006',date:'20-01-2024',v:11.77},{id:'MT-IM-007',date:'02-02-2024',v:14.73},{id:'MT-IM-008',date:'23-01-2024',v:11.96},{id:'MT-IM-009',date:'06-01-2024',v:15.49},{id:'MT-IM-010',date:'07-12-2023',v:14.55},{id:'MT-IM-011',date:'09-12-2023',v:15.21},{id:'MT-IM-012',date:'13-10-2023',v:14.49},{id:'MT-IM-013',date:'14-10-2023',v:15.40},{id:'MT-IM-014',date:'22-06-2024',v:14.45},{id:'MT-IM-015',date:'24-06-2024',v:15.10}
+];
+const feData=[{id:'VT-FE-001',date:'15-06-2024',v:30.39},{id:'VT-FE-002',date:'18-06-2024',v:34.02},{id:'VT-FE-003',date:'21-06-2024',v:32.02},{id:'VT-FE-004',date:'20-06-2024',v:29.23},{id:'VT-FE-005',date:'22-06-2024',v:27.57}];
+const fmData=[{id:'VT-SA-001',date:'08-12-2024',v:2.83},{id:'VT-SA-002',date:'21-02-2024',v:2.75},{id:'VT-SA-003',date:'15-03-2024',v:2.70}];
+const bdData=[{id:'VT-BD-001',date:'22-11-2023',type:'Bulk Density Loose',v:1.414},{id:'VT-BD-002',date:'22-11-2023',type:'Bulk Density Compacted',v:1.528},{id:'VT-BD-003',date:'18-11-2023',type:'Bulk Density Compacted',v:1.535}];
+
+function lim(arr,v){return arr.map(()=>v);}
+
+function initAll(){
+  new Chart(document.getElementById('c_pie'),{type:'doughnut',data:{labels:['Physical','Mechanical','Volumetric','Concrete'],datasets:[{data:[27,27,11,1],backgroundColor:[BL,TL,AM,GN],borderColor:'white',borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'white',borderColor:'#D9A5B8',borderWidth:2,titleColor:TK,bodyColor:TK}}}});
+  new Chart(document.getElementById('c_mat'),{type:'bar',data:{labels:['Fine Aggregate','Coarse Aggregate'],datasets:[{data:[19,8],backgroundColor:[BL,TL],borderRadius:6,borderSkipped:false}]},options:merge(base,{})});
+  
+  const faLbls=ptFA.map(r=>r.id.replace('PT-FA-','FA-'));
+  new Chart(document.getElementById('c_sgFA'),{type:'line',data:{labels:faLbls,datasets:[{data:ptFA.map(r=>r.sg),borderColor:BL,backgroundColor:'rgba(123, 163, 192, 0.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:BL,pointBorderColor:'white',pointBorderWidth:2,label:'SG'},{data:lim(ptFA,2.90),borderColor:AM,borderDash:[5,5],pointRadius:0,borderWidth:2,label:'Limit'}]},options:merge(base,{scales:{y:{min:2.48,max:2.95}}})});
+  new Chart(document.getElementById('c_waFA'),{type:'line',data:{labels:faLbls,datasets:[{data:ptFA.map(r=>r.wa),borderColor:TL,backgroundColor:'rgba(217, 165, 184, 0.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:TL,pointBorderColor:'white',pointBorderWidth:2,label:'WA'},{data:lim(ptFA,3.0),borderColor:RD,borderDash:[5,5],pointRadius:0,borderWidth:2,label:'Limit'}]},options:merge(base,{scales:{y:{min:1.8,max:3.3}}})});
+  
+  const caLbls=ptCA.map(r=>r.id.replace('PT-CA-','CA-'));
+  new Chart(document.getElementById('c_sgCA'),{type:'bar',data:{labels:caLbls,datasets:[{data:ptCA.map(r=>r.sg),backgroundColor:TL,borderRadius:6,borderSkipped:false}]},options:merge(base,{scales:{y:{min:2.58,max:2.68}}})});
+  new Chart(document.getElementById('c_waCA'),{type:'bar',data:{labels:caLbls,datasets:[{data:ptCA.map(r=>r.wa),backgroundColor:GN,borderRadius:6,borderSkipped:false}]},options:merge(base,{scales:{y:{min:0,max:.40}}})});
+
+  const crLbls=crush.map(r=>r.id.replace('MT-CR-','CR-'));
+  new Chart(document.getElementById('c_crush'),{type:'line',data:{labels:crLbls,datasets:[{data:crush.map(r=>r.v),borderColor:BL,backgroundColor:'rgba(123, 163, 192, 0.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:BL,pointBorderColor:'white',pointBorderWidth:2,label:'Crushing'},{data:lim(crush,30),borderColor:AM,borderDash:[5,5],pointRadius:0,borderWidth:2,label:'IS Limit'}]},options:merge(base,{scales:{y:{min:14,max:33},x:{ticks:{autoSkip:false,maxRotation:45}}}})});
+  new Chart(document.getElementById('c_crush2'),{type:'bar',data:{labels:crLbls,datasets:[{data:crush.map(r=>r.v),backgroundColor:crush.map(r=>r.v>25?RD:BL),borderRadius:4,borderSkipped:false}]},options:merge(base,{scales:{y:{min:14,max:22}}})});
+
+  const imLbls=impact.map(r=>r.id.replace('MT-IM-','IM-'));
+  new Chart(document.getElementById('c_impact'),{type:'line',data:{labels:imLbls,datasets:[{data:impact.map(r=>r.v),borderColor:TL,backgroundColor:'rgba(217, 165, 184, 0.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:TL,pointBorderColor:'white',pointBorderWidth:2,label:'Impact'},{data:lim(impact,30),borderColor:AM,borderDash:[5,5],pointRadius:0,borderWidth:2,label:'IS Limit'}]},options:merge(base,{scales:{y:{min:9,max:33},x:{ticks:{autoSkip:false,maxRotation:45}}}})});
+  const crAvg=(crush.reduce((a,b)=>a+b.v,0)/crush.length);
+  const imAvg=(impact.reduce((a,b)=>a+b.v,0)/impact.length);
+  new Chart(document.getElementById('c_mechcmp'),{type:'bar',data:{labels:['Average','Min','Max'],datasets:[{label:'Crushing',data:[+crAvg.toFixed(2),Math.min(...crush.map(r=>r.v)),Math.max(...crush.map(r=>r.v))],backgroundColor:BL,borderRadius:4,borderSkipped:false},{label:'Impact',data:[+imAvg.toFixed(2),Math.min(...impact.map(r=>r.v)),Math.max(...impact.map(r=>r.v))],backgroundColor:TL,borderRadius:4,borderSkipped:false}]},options:merge(base,{scales:{y:{min:0,max:25}}})});
+
+  const feLbls=feData.map(r=>r.id.replace('VT-FE-','F-'));
+  new Chart(document.getElementById('c_fe'),{type:'bar',data:{labels:feLbls,datasets:[{data:feData.map(r=>r.v),backgroundColor:feData.map(r=>AM),borderRadius:4,borderSkipped:false},{data:lim(feData,35),borderColor:RD,borderDash:[4,4],pointRadius:0,type:'line',borderWidth:2}]},options:merge(base,{scales:{y:{min:24,max:38}}})});
+  new Chart(document.getElementById('c_fm'),{type:'bar',data:{labels:fmData.map(r=>r.id.replace('VT-SA-','SA-')),datasets:[{data:fmData.map(r=>r.v),backgroundColor:GN,borderRadius:4,borderSkipped:false},{data:lim(fmData,2.6),borderColor:AM,borderDash:[4,4],pointRadius:0,type:'line',borderWidth:2},{data:lim(fmData,2.9),borderColor:AM,borderDash:[4,4],pointRadius:0,type:'line',borderWidth:2}]},options:merge(base,{scales:{y:{min:2.5,max:3.0}}})});
+  new Chart(document.getElementById('c_bd'),{type:'bar',data:{labels:['BD Loose','BD Compact-1','BD Compact-2'],datasets:[{data:[1.414,1.528,1.535],backgroundColor:[BL,TL,TL],borderRadius:4,borderSkipped:false}]},options:merge(base,{scales:{y:{min:1.3,max:1.6}}})});
+
+  new Chart(document.getElementById('c_slump'),{type:'bar',data:{labels:['Min Allowed','Target Slump','Actual Slump','Max Allowed'],datasets:[{data:[125,150,165,175],backgroundColor:['rgba(217, 118, 118, 0.5)',AM,BL,'rgba(217, 118, 118, 0.5)'],borderRadius:4,borderSkipped:false}]},options:merge(base,{scales:{y:{min:100,max:200}}})});
+
+  new Chart(document.getElementById('c_radar'),{type:'radar',data:{labels:['FA Water Abs','CA Water Abs','Crushing Value','Impact Value','F&E Index','M35 Slump'],datasets:[{label:'Compliance %',data:[75,90,61,47,88,66],backgroundColor:'rgba(217, 165, 184, 0.2)',borderColor:TL,pointBackgroundColor:TL,pointRadius:5,pointBorderColor:'white',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'white',borderColor:'#D9A5B8',borderWidth:2,titleColor:TK,bodyColor:TK}},scales:{r:{grid:{color:GR},ticks:{color:TK,font:{size:9},backdropColor:'transparent'},pointLabels:{color:TK,font:{size:9,weight:'bold'}}}}}});
+
+  const faBody=document.getElementById('tb_fa');
+  ptFA.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.id}</td><td>${r.date}</td><td>Fine Agg</td><td>Robo-Sand</td><td>${r.sg.toFixed(2)}</td><td>${r.wa.toFixed(2)}</td><td><span class="pill pp">PASS</span></td>`;faBody.appendChild(tr);});
+
+  const caBody=document.getElementById('tb_ca');
+  ptCA.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.id}</td><td>${r.date}</td><td>Coarse Agg</td><td>20MM</td><td>${r.sg.toFixed(2)}</td><td>${r.wa.toFixed(2)}</td><td><span class="pill pp">PASS</span></td>`;caBody.appendChild(tr);});
+
+  const crBody=document.getElementById('tb_crush');
+  crush.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.id}</td><td>${r.date}</td><td>12.5mm</td><td>${r.v.toFixed(2)}%</td><td><span class="pill pp">PASS</span></td>`;crBody.appendChild(tr);});
+
+  const imBody=document.getElementById('tb_impact');
+  impact.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.id}</td><td>${r.date}</td><td>12.5mm</td><td>${r.v.toFixed(2)}%</td><td><span class="pill pp">PASS</span></td>`;imBody.appendChild(tr);});
+
+  const volBody=document.getElementById('tb_vol');
+  [...bdData,...feData,...fmData].forEach(r=>{const tr=document.createElement('tr');const isFeOrFm=r.v>1.9;const unit=r.type==='Fineness Modulus'?'–':(r.v<5?'g/cc':'%');const type=r.type||feData.find(f=>f.id===r.id)?'Comb F&E':'Fineness Modulus';tr.innerHTML=`<td>${r.id}</td><td>${r.date}</td><td>${r.v<5&&r.v>1?'Coarse Agg':'Coarse Agg'}</td><td style="font-size:10px">${r.type||type}</td><td>${r.v.toFixed(3)}</td><td>${unit}</td><td><span class="pill pp">PASS</span></td>`;volBody.appendChild(tr);});
+}
+
+function sp(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+name).classList.add('on');
+  btn.classList.add('on');
+}
+
+window.addEventListener('load',initAll);
+</script>
+
+</body>
+</html>
